@@ -1,0 +1,46 @@
+name: Build Mubasher Sport APK
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'MubasherSportAndroid_beIN.zip'
+      - '.github/workflows/build-apk.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Set up Gradle 8.9
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.9'
+
+      - name: Extract and build Android project
+        run: |
+          unzip -q MubasherSportAndroid_beIN.zip -d extracted
+          test -f extracted/MubasherSportAndroid/app/build.gradle
+          cd extracted/MubasherSportAndroid
+          gradle assembleDebug
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: MubasherSport-debug-apk
+          path: extracted/MubasherSportAndroid/app/build/outputs/apk/debug/app-debug.apk
+          if-no-files-found: error
